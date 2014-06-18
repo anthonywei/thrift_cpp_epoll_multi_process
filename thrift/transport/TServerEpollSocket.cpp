@@ -267,7 +267,7 @@ shared_ptr<TTransport> TServerEpollSocket::acceptImpl() {
           SOCKET clientSocket = ::accept(serverSocket_,
                                   (struct sockaddr *) &clientAddress,
                               (socklen_t *) &size);
-          // Make sure client socket is blocking
+
           int flags = fcntl(clientSocket, F_GETFL, 0);
           if (flags == -1) {
             int errno_copy = errno;
@@ -275,9 +275,9 @@ shared_ptr<TTransport> TServerEpollSocket::acceptImpl() {
             throw TTransportException(TTransportException::UNKNOWN, "fcntl(F_GETFL)", errno_copy);
           }
 
-          if (-1 == fcntl(clientSocket, F_SETFL, flags & ~O_NONBLOCK)) {
+          if (-1 == fcntl(clientSocket, F_SETFL, flags | O_NONBLOCK)) {
             int errno_copy = errno;
-            GlobalOutput.perror("TServerEpollSocket::acceptImpl() fcntl() F_SETFL ~O_NONBLOCK ", errno_copy);
+            GlobalOutput.perror("TServerEpollSocket::acceptImpl() fcntl() F_SETFL | O_NONBLOCK ", errno_copy);
             throw TTransportException(TTransportException::UNKNOWN, "fcntl(F_SETFL)", errno_copy);
           }
 
